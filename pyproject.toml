@@ -1,0 +1,15 @@
+[project]
+name = "flight_consolidator_app"
+version = "0.01.00.000"
+description = "Confluent Cloud for Apache Flink (CCAF) Flight Consolidator App Lambda"
+readme = "README.md"
+authors = [
+    { name = "Jeffrey Jonathan Jennings (J3)", email = "j3@thej3.com" }
+]
+requires-python = "~=3.11.9"
+dependencies = [
+    "boto3>=1.35.90",
+    "confluent-flink-table-api-python-plugin>=1.20.42",
+    "setuptools>=65.5.1",
+]
+
