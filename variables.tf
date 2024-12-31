@@ -29,11 +29,13 @@ variable "aws_session_token" {
 variable "catalog_name" {
     description = "The CCAF Catalog Name."
     type        = string
+    default     = ""
 }
 
 variable "database_name" {
     description = "The CCAF Database Name."
     type        = string
+    default     = ""
 }
 
 variable "ccaf_secrets_path" {
