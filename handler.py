@@ -167,7 +167,7 @@ def lambda_handler(event, context):
         tbl_env.get_config().set("client.statement-name", statement_name)
         table_result = combined_airlines.execute_insert(flight_avro_table_path.get_full_name())
         processed_statement_name = ConfluentTools.get_statement_name(table_result)
-        print("Statement has been deployed as: " + processed_statement_name)
+        logger.info(f"Statement has been deployed as: {processed_statement_name}")
     except Exception as e:
         logger.error(f"An error occurred during data insertion: {e}")
         return {
