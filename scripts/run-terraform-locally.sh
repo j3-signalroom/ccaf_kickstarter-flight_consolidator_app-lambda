@@ -97,14 +97,23 @@ export AWS_REGION=$(aws configure get sso_region $AWS_PROFILE)
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity $AWS_PROFILE --query "Account" --output text)
 
 # Create terraform.tfvars file
-printf "aws_account_id=\"${AWS_ACCOUNT_ID}\"\
-\naws_region=\"${AWS_REGION}\"\
-\naws_access_key_id=\"${AWS_ACCESS_KEY_ID}\"\
-\naws_secret_access_key=\"${AWS_SECRET_ACCESS_KEY}\"\
-\naws_session_token=\"${AWS_SESSION_TOKEN}\"\
-\nccaf_secrets_path=\"${CCAF_SECRETS_PATH}\"\
-\ncatalog_name=\"${CATALOG_NAME}\"\
-\ndatabase_name=\"${DATABASE_NAME}\"" > terraform.tfvars
+if [ "$create_action" = true ]
+then
+    printf "aws_account_id=\"${AWS_ACCOUNT_ID}\"\
+    \naws_region=\"${AWS_REGION}\"\
+    \naws_access_key_id=\"${AWS_ACCESS_KEY_ID}\"\
+    \naws_secret_access_key=\"${AWS_SECRET_ACCESS_KEY}\"\
+    \naws_session_token=\"${AWS_SESSION_TOKEN}\"\
+    \nccaf_secrets_path=\"${CCAF_SECRETS_PATH}\"\
+    \ncatalog_name=\"${CATALOG_NAME}\"\
+    \ndatabase_name=\"${DATABASE_NAME}\"" > terraform.tfvars
+else
+    printf "aws_account_id=\"${AWS_ACCOUNT_ID}\"\
+    \naws_region=\"${AWS_REGION}\"\
+    \naws_access_key_id=\"${AWS_ACCESS_KEY_ID}\"\
+    \naws_secret_access_key=\"${AWS_SECRET_ACCESS_KEY}\"\
+    \naws_session_token=\"${AWS_SESSION_TOKEN}\"" > terraform.tfvars
+fi
 
 # Initialize the Terraform configuration
 terraform init
