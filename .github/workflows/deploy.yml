@@ -1,0 +1,69 @@
+name: Deploy
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout  
+
+on:
+  workflow_dispatch:
+    inputs:
+      aws_environment:
+        type: choice
+        description: AWS Environment
+        required: true
+        default: dev
+        options:
+          - dev
+          - test
+          - prod
+      aws_region:
+        type: choice
+        description: AWS Region
+        required: true
+        default: us-east-1
+        options:
+          - us-east-1
+          - us-east-2
+          - us-west-1
+          - us-west-2
+
+run-name: ${{ github.workflow }} ${{ github.ref_name }} branch to the ${{ github.event.inputs.aws_region }} ${{ github.event.inputs.aws_environment }} environment
+
+jobs:
+  deploy:
+    name: "Create, build, tag and push docker image to Amazon ECR"
+    runs-on: ${{ github.event.inputs.aws_environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get AWS Environment Info
+        id: aws-environment-info
+        uses: ./.github/actions/aws-environment-info
+        with:
+          aws_environment: ${{ github.event.inputs.aws_environment }}
+          aws_dev_account_id: ${{ vars.AWS_DEV_ACCOUNT_ID }}
+          aws_test_account_id: ${{ vars.AWS_TEST_ACCOUNT_ID }}
+          aws_prod_account_id: ${{ vars.AWS_PROD_ACCOUNT_ID }}
+          aws_region: ${{ github.event.inputs.aws_region }}
+
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ steps.aws-environment-info.outputs.aws_account_id }}:role/GitHubActionsRole
+          aws-region: ${{ github.event.inputs.aws_region }}
+          output-credentials: true
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: "ccaf_kickstarter-flight_consolidator_app"
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
