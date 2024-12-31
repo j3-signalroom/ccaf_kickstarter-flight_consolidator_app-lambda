@@ -78,7 +78,7 @@ then
 fi
 
 # Check required --database-name argument was supplied
-if [ -z $CCAF_SECRETS_PATH ] && [ create_action = true ]
+if [ -z $CCAF_SECRETS_PATH ]
 then
     echo
     echo "(Error Message 005)  You did not include the proper use of the --ccaf-secrets-path=<CCAF_SECRETS_PATH> argument in the call."
@@ -112,7 +112,8 @@ else
     \naws_region=\"${AWS_REGION}\"\
     \naws_access_key_id=\"${AWS_ACCESS_KEY_ID}\"\
     \naws_secret_access_key=\"${AWS_SECRET_ACCESS_KEY}\"\
-    \naws_session_token=\"${AWS_SESSION_TOKEN}\"" > terraform.tfvars
+    \naws_session_token=\"${AWS_SESSION_TOKEN}\"\
+    \nccaf_secrets_path=\"${CCAF_SECRETS_PATH}\"" > terraform.tfvars
 fi
 
 # Initialize the Terraform configuration
