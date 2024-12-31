@@ -1,6 +1,6 @@
 from pyflink.table import TableEnvironment, Schema, DataTypes, FormatDescriptor
 from pyflink.table.catalog import ObjectPath
-from pyflink.table.confluent import ConfluentTableDescriptor, ConfluentSettings
+from pyflink.table.confluent import ConfluentTableDescriptor, ConfluentSettings, ConfluentTools
 from pyflink.table.expressions import col, lit
 import uuid
 from functools import reduce
@@ -145,7 +145,9 @@ def lambda_handler(event, context):
     try:
         statement_name = "combined-flight-data-" + str(uuid.uuid4())
         tbl_env.get_config().set("client.statement-name", statement_name)
-        combined_airlines.execute_insert(flight_avro_table_path.get_full_name())
+        table_result = combined_airlines.execute_insert(flight_avro_table_path.get_full_name())
+        processed_statement_name = ConfluentTools.get_statement_name(table_result)
+        print("Statement has been deployed as: " + processed_statement_name)
     except Exception as e:
         print(f"An error occurred during data insertion: {e}")
         exit(1)
