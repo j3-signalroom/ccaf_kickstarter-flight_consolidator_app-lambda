@@ -80,7 +80,7 @@ jobs:
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
-  terraform-apply:
+  terraform-init-plan-apply:
     needs: lambda-publish
     runs-on: ${{ github.event.inputs.aws_environment }}
     steps:
@@ -101,7 +101,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ steps.aws-environment-info.outputs.aws_account_id }}:role/GitHubActionsRole
           aws-region: ${{ github.event.inputs.aws_region }}
           output-credentials: true
-
+          
       - name: Terraform Init
         id: init
         run:  terraform init
