@@ -18,6 +18,9 @@ resource "aws_iam_role" "flight_consolidator_lambda" {
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
+data "aws_secretsmanager_secret" "ccaf_secrets_path" {
+    name = var.ccaf_secrets_path
+}
 resource "aws_iam_policy" "flight_consolidator_lambda_policy" {
   name        = "ccaf_flight_consolidator_app_policy"
   description = "IAM policy for the flight_consolidator Lambda execution role."
@@ -47,6 +50,15 @@ resource "aws_iam_policy" "flight_consolidator_lambda_policy" {
         Action = "ecr:GetAuthorizationToken",
         Effect = "Allow",
         Resource = "*"
+      },
+      {
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ],
+        Effect = "Allow",
+        Resource = [
+          data.aws_secretsmanager_secret.ccaf_secrets_path.arn
+        ]
       }
     ]
   })
@@ -92,6 +104,7 @@ resource "aws_lambda_invocation" "flight_consolidator_lambda_function" {
   })
 
   depends_on = [ 
+    aws_iam_policy.flight_consolidator_lambda_policy,
     aws_lambda_function.flight_consolidator_lambda_function
   ]
 }
