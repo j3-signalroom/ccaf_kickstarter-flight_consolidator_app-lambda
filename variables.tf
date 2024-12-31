@@ -36,7 +36,7 @@ variable "database_name" {
     type        = string
 }
 
-variable "ccaf_secret_path" {
+variable "ccaf_secrets_path" {
     description = "The CCAF AWS Secrets Manager secrets path."
     type        = string
     default     = ""

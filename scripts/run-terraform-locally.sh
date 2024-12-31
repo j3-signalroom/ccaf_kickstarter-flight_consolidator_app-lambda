@@ -4,7 +4,8 @@
 # *** Script Syntax ***
 # scripts/run-terraform-locally.sh <create | delete> --profile=<SSO_PROFILE_NAME> \
 #                                                    --catalog-name=<CATALOG_NAME> \
-#                                                    --database-name=<DATABASE_NAME>
+#                                                    --database-name=<DATABASE_NAME> \
+#                                                    --ccaf-secrets-path=<CCAF_SECRETS_PATH>
 #
 
 # Check required command (create or delete) was supplied
@@ -37,6 +38,9 @@ do
         *"--database-name="*)
             arg_length=16
             DATABASE_NAME=${arg:$arg_length:$(expr ${#arg} - $arg_length)};;
+        *"--ccaf-secrets-path="*)
+            arg_length=20
+            CCAF_SECRETS_PATH=${arg:$arg_length:$(expr ${#arg} - $arg_length)};;
     esac
 done
 
@@ -46,7 +50,7 @@ then
     echo
     echo "(Error Message 002)  You did not include the proper use of the --profile=<SSO_PROFILE_NAME> argument in the call."
     echo
-    echo "Usage:  Require all four arguments ---> `basename $0` <create | delete> --profile=<SSO_PROFILE_NAME> --confluent-api-key=<CONFLUENT_API_KEY> --confluent-api-secret=<CONFLUENT_API_SECRET> --snowflake-warehouse=<SNOWFLAKE_WAREHOUSE> --service-account-user=<SERVICE_ACCOUNT_USER> --day-count=<DAY_COUNT> --auto-offset-reset=<earliest | latest> --number-of-api-keys-to-retain=<NUMBER_OF_API_KEYS_TO_RETAIN>"
+    echo "Usage:  Require all four arguments ---> `basename $0` <create | delete> --profile=<AWS_SSO_PROFILE_NAME> --catalog-name=<CATALOG_NAME> --database-name=<DATABASE_NAME> --ccaf-secrets-path=<CCAF_SECRETS_PATH>"
     echo
     exit 85 # Common GNU/Linux Exit Code for 'Interrupted system call should be restarted'
 fi
@@ -55,9 +59,9 @@ fi
 if [ -z $CATALOG_NAME ]
 then
     echo
-    echo "(Error Message 002)  You did not include the proper use of the --catalog-name=<CATALOG_NAME> argument in the call."
+    echo "(Error Message 003)  You did not include the proper use of the --catalog-name=<CATALOG_NAME> argument in the call."
     echo
-    echo "Usage:  Require ---> `basename $0` --profile=<AWS_SSO_PROFILE_NAME> --catalog-name=<CATALOG_NAME> --database-name=<DATABASE_NAME>"
+    echo "Usage:  Require ---> `basename $0` --profile=<AWS_SSO_PROFILE_NAME> --catalog-name=<CATALOG_NAME> --database-name=<DATABASE_NAME> --ccaf-secrets-path=<CCAF_SECRETS_PATH>"
     echo
     exit 85 # Common GNU/Linux Exit Code for 'Interrupted system call should be restarted'
 fi
@@ -66,9 +70,20 @@ fi
 if [ -z $DATABASE_NAME ]
 then
     echo
-    echo "(Error Message 003)  You did not include the proper use of the --database-name=<DATABASE_NAME> argument in the call."
+    echo "(Error Message 004)  You did not include the proper use of the --database-name=<DATABASE_NAME> argument in the call."
     echo
-    echo "Usage:  Require ---> `basename $0` --profile=<AWS_SSO_PROFILE_NAME> --catalog-name=<CATALOG_NAME> --database-name=<DATABASE_NAME>"
+    echo "Usage:  Require ---> `basename $0` --profile=<AWS_SSO_PROFILE_NAME> --catalog-name=<CATALOG_NAME> --database-name=<DATABASE_NAME> --ccaf-secrets-path=<CCAF_SECRETS_PATH>"
+    echo
+    exit 85 # Common GNU/Linux Exit Code for 'Interrupted system call should be restarted'
+fi
+
+# Check required --database-name argument was supplied
+if [ -z $CCAF_SECRETS_PATH ]
+then
+    echo
+    echo "(Error Message 005)  You did not include the proper use of the --ccaf-secrets-path=<CCAF_SECRETS_PATH> argument in the call."
+    echo
+    echo "Usage:  Require ---> `basename $0` --profile=<AWS_SSO_PROFILE_NAME> --catalog-name=<CATALOG_NAME> --database-name=<DATABASE_NAME> --ccaf-secrets-path=<CCAF_SECRETS_PATH>"
     echo
     exit 85 # Common GNU/Linux Exit Code for 'Interrupted system call should be restarted'
 fi
@@ -87,6 +102,7 @@ printf "aws_account_id=\"${AWS_ACCOUNT_ID}\"\
 \naws_access_key_id=\"${AWS_ACCESS_KEY_ID}\"\
 \naws_secret_access_key=\"${AWS_SECRET_ACCESS_KEY}\"\
 \naws_session_token=\"${AWS_SESSION_TOKEN}\"\
+\nccaf_secrets_path=\"${CCAF_SECRETS_PATH}\"\
 \ncatalog_name=\"${CATALOG_NAME}\"\
 \ndatabase_name=\"${DATABASE_NAME}\"" > terraform.tfvars
 

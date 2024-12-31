@@ -86,9 +86,9 @@ resource "aws_lambda_invocation" "flight_consolidator_lambda_function" {
   function_name = aws_lambda_function.flight_consolidator_lambda_function.function_name
 
   input = jsonencode({
-    catalog_name     = var.catalog_name
-    database_name    = var.database_name
-    ccaf_secret_path = var.ccaf_secret_path
+    catalog_name      = var.catalog_name
+    database_name     = var.database_name
+    ccaf_secrets_path = var.ccaf_secrets_path
   })
 
   depends_on = [ 
