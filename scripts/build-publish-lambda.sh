@@ -60,7 +60,7 @@ repo_exist_handler() {
 trap 'repo_exist_handler' ERR
 
 # Define the ECR Repository name and URL variables
-repo_name="ccaf_kickstarter-flight-consolidator_app"
+repo_name="ccaf_kickstarter-flight_consolidator_app"
 repo_url="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo_name}"
 
 # Execute the create or delete action
