@@ -10,6 +10,12 @@ This repository empowers the deployment of a robust [Flink Job Graph](https://gi
 + [2.0 Visualizing the Terraform Configuration](#20-visualizing-the-terraform-configuration)
 <!-- tocstop -->
 
+---
+
+> _Please run the [**`AvroDataGeneratorApp`**](https://github.com/j3-signalroom/apache_flink-kickstarter/blob/main/java/README.md) first to generate the `airline.sunset_avro` and `airline.skyone_avro` Kafka topics before running this application._
+
+---
+
 ## 1.0 Let's get started!
 1. Take care of the cloud and local environment prequisities listed below:
     > You need to have the following cloud accounts:
