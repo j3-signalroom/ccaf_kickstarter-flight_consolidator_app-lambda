@@ -28,29 +28,6 @@ FLINK_PRINCIPAL_ID = "flink.principal.id"
 FLINK_REGION = "flink.region"
 ORGANIZATION_ID = "organization.id"
 
-secretsmanager_client = boto3.client('secretsmanager')
-
-try:
-    get_secret_value_response = secretsmanager_client.get_secret_value(SecretId="/confluent_cloud_resource/flink_kickstarter/flink_compute_pool")
-    settings = json.loads(get_secret_value_response['SecretString'])
-
-    # Create the TableEnvironment with the Confluent Cloud for Apache Flink settings.
-    tbl_env = TableEnvironment.create(
-        ConfluentSettings
-            .new_builder()
-            .set_cloud(settings[FLINK_CLOUD])
-            .set_region(settings[FLINK_REGION])
-            .set_flink_api_key(settings[FLINK_API_KEY])
-            .set_flink_api_secret(settings[FLINK_API_SECRET])
-            .set_organization_id(settings[ORGANIZATION_ID])
-            .set_environment_id(settings[ENVIRONMENT_ID])
-            .set_compute_pool_id(settings[FLINK_COMPUTE_POOL_ID])
-            .build()
-    )
-except ClientError as e:
-    logging.error("Failed to get secrets from the AWS Secrets Manager because of %s.", e)
-    exit(1)
-
 
 def lambda_handler(event, context):
     """
@@ -69,6 +46,28 @@ def lambda_handler(event, context):
     # The service account user is passxed in as a command line argument.  
     catalog_name = event.get("catalog_name", "").lower()
     database_name = event.get("database_name", "").lower()
+    secrets_path = event.get("ccaf_secrets_path", "")
+
+    try:
+        get_secret_value_response = boto3.client('secretsmanager').get_secret_value(SecretId=secrets_path)
+        settings = json.loads(get_secret_value_response['SecretString'])
+
+        # Create the TableEnvironment with the Confluent Cloud for Apache Flink settings.
+        tbl_env = TableEnvironment.create(
+            ConfluentSettings
+                .new_builder()
+                .set_cloud(settings[FLINK_CLOUD])
+                .set_region(settings[FLINK_REGION])
+                .set_flink_api_key(settings[FLINK_API_KEY])
+                .set_flink_api_secret(settings[FLINK_API_SECRET])
+                .set_organization_id(settings[ORGANIZATION_ID])
+                .set_environment_id(settings[ENVIRONMENT_ID])
+                .set_compute_pool_id(settings[FLINK_COMPUTE_POOL_ID])
+                .build()
+        )
+    except ClientError as e:
+        logging.error("Failed to get secrets from the AWS Secrets Manager because of %s.", e)
+        exit(1)
 
     # The catalog name and database name are used to set the current catalog and database.
     tbl_env.use_catalog(catalog_name)
