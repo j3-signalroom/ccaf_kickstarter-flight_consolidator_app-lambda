@@ -43,7 +43,21 @@ def lambda_handler(event, context):
         statusCode: 200 for a successfully run of the function.
         body: List of the secret names updated by the function.
     """
-    # The service account user is passxed in as a command line argument.  
+    # Set up the logger.
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    # Check all required fields for the event exist.
+    required_event_fields = ["catalog_name", "database_name", "ccaf_secrets_path"]
+    for field in required_event_fields:
+        if field not in event:
+            logger.error(f"Missing required field: {field}")
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': f'Missing required field: {field}'})
+            }
+        
+    # Get the catalog name, database name, and secrets path from the event.
     catalog_name = event.get("catalog_name", "").lower()
     database_name = event.get("database_name", "").lower()
     secrets_path = event.get("ccaf_secrets_path", "")
@@ -66,8 +80,11 @@ def lambda_handler(event, context):
                 .build()
         )
     except ClientError as e:
-        logging.error("Failed to get secrets from the AWS Secrets Manager because of %s.", e)
-        exit(1)
+        logger.error("Failed to get secrets from the AWS Secrets Manager because of %s.", e)
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
 
     # The catalog name and database name are used to set the current catalog and database.
     tbl_env.use_catalog(catalog_name)
@@ -103,12 +120,15 @@ def lambda_handler(event, context):
                 flight_avro_table_path.get_full_name(),
                 flight_avro_table_descriptor
             )
-            print(f"Sink table '{flight_avro_table_path.get_full_name()}' created successfully.")
+            logger.info(f"Sink table '{flight_avro_table_path.get_full_name()}' created successfully.")
         else:
-            print(f"Sink table '{flight_avro_table_path.get_full_name()}' already exists.")
+            logger.info(f"Sink table '{flight_avro_table_path.get_full_name()}' already exists.")
     except Exception as e:
-        print(f"A critical error occurred during the processing of the table because {e}")
-        exit(1)
+        logger.error(f"A critical error occurred during the processing of the table because {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
 
     # The first table is the SkyOne table that is read in.
     airline = tbl_env.from_path(f"{catalog_name}.{database_name}.skyone_avro")
