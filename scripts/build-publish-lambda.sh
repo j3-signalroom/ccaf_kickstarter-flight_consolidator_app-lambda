@@ -2,7 +2,7 @@
 
 #
 # *** Script Syntax ***
-# scripts/run-locally.sh <create | delete> --profile=<SSO_PROFILE_NAME>
+# scripts/build-publish-lambda.sh <create | delete> --profile=<SSO_PROFILE_NAME>
 #
 #
 
@@ -66,6 +66,9 @@ repo_url="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo_name}"
 # Execute the create or delete action
 if [ "$create_action" = true ]
 then
+    # Force the delete of the ECR Repository (if it exists)
+    aws ecr delete-repository --repository-name ${repo_name} ${AWS_PROFILE} --force || true
+
     # Create the ECR Repository
     aws ecr create-repository --repository-name ${repo_name} ${AWS_PROFILE} || true
 
