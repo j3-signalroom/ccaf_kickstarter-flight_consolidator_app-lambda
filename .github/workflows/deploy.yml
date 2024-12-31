@@ -26,11 +26,23 @@ on:
           - us-east-2
           - us-west-1
           - us-west-2
+      ccaf_secrets_path:
+        type: string
+        description: CCAF Secrets Path
+        required: true
+      catalog_name:
+        type: string
+        description: Catalog Name
+        required: true
+      database_name:
+        type: string
+        description: Database Name
+        required: true
 
 run-name: ${{ github.workflow }} ${{ github.ref_name }} branch to the ${{ github.event.inputs.aws_region }} ${{ github.event.inputs.aws_environment }} environment
 
 jobs:
-  deploy:
+  lambda-publish:
     name: "Create, build, tag and push docker image to Amazon ECR"
     runs-on: ${{ github.event.inputs.aws_environment }}
     steps:
@@ -67,3 +79,59 @@ jobs:
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+  terraform-apply:
+    needs: lambda-publish
+    runs-on: ${{ github.event.inputs.aws_environment }}
+    steps:
+      - name: Get AWS Environment Info
+        id: aws-environment-info
+        uses: ./.github/actions/aws-environment-info
+        with:
+          aws_environment: ${{ github.event.inputs.aws_environment }}
+          aws_dev_account_id: ${{ vars.AWS_DEV_ACCOUNT_ID }}
+          aws_test_account_id: ${{ vars.AWS_TEST_ACCOUNT_ID }}
+          aws_prod_account_id: ${{ vars.AWS_PROD_ACCOUNT_ID }}
+          aws_region: ${{ github.event.inputs.aws_region }}
+
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ steps.aws-environment-info.outputs.aws_account_id }}:role/GitHubActionsRole
+          aws-region: ${{ github.event.inputs.aws_region }}
+          output-credentials: true
+
+      - name: Terraform Init
+        id: init
+        run:  terraform init
+  
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan
+        env:
+          TF_VAR_aws_account_id: ${{ steps.aws-environment-info.outputs.aws_account_id }}
+          TF_VAR_aws_region: ${{ github.event.inputs.aws_region }}
+          TF_VAR_aws_access_key_id: ${{ steps.aws-credentials.outputs.aws-access-key-id }}
+          TF_VAR_aws_secret_access_key: ${{ steps.aws-credentials.outputs.aws-secret-access-key }}
+          TF_VAR_aws_session_token: ${{ steps.aws-credentials.outputs.aws-session-token }}
+          TF_VAR_ccaf_secrets_path: ${{ github.event.inputs.ccaf_secrets_path }}
+          TF_VAR_catalog_name: ${{ github.event.inputs.catalog_name }}
+          TF_VAR_database_name: ${{ github.event.inputs.database_name }}
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_aws_account_id: ${{ steps.aws-environment-info.outputs.aws_account_id }}
+          TF_VAR_aws_region: ${{ github.event.inputs.aws_region }}
+          TF_VAR_aws_access_key_id: ${{ steps.aws-credentials.outputs.aws-access-key-id }}
+          TF_VAR_aws_secret_access_key: ${{ steps.aws-credentials.outputs.aws-secret-access-key }}
+          TF_VAR_aws_session_token: ${{ steps.aws-credentials.outputs.aws-session-token }}
+          TF_VAR_ccaf_secrets_path: ${{ github.event.inputs.ccaf_secrets_path }}
+          TF_VAR_catalog_name: ${{ github.event.inputs.catalog_name }}
+          TF_VAR_database_name: ${{ github.event.inputs.database_name }}
