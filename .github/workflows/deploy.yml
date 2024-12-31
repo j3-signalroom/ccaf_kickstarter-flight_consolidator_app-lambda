@@ -44,8 +44,7 @@ run-name: ${{ github.workflow }} ${{ github.ref_name }} branch to the ${{ github
 jobs:
   lambda-publish:
     name: "Create, build, tag and push docker image to Amazon ECR"
-    # runs-on: ${{ github.event.inputs.aws_environment }}
-    runs-on: self-hosted
+    runs-on: ${{ github.event.inputs.aws_environment }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,8 +82,7 @@ jobs:
 
   terraform-init-plan-apply:
     needs: lambda-publish
-    # runs-on: ${{ github.event.inputs.aws_environment }}
-    runs-on: self-hosted
+    runs-on: ${{ github.event.inputs.aws_environment }}
     steps:
       - name: Get AWS Environment Info
         id: aws-environment-info
