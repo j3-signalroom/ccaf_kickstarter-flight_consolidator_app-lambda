@@ -56,7 +56,7 @@ then
 fi
 
 # Check required --catalog-name argument was supplied
-if [ -z $CATALOG_NAME ]
+if [ -z $CATALOG_NAME ] && [ create_action = true ]
 then
     echo
     echo "(Error Message 003)  You did not include the proper use of the --catalog-name=<CATALOG_NAME> argument in the call."
@@ -67,7 +67,7 @@ then
 fi
 
 # Check required --database-name argument was supplied
-if [ -z $DATABASE_NAME ]
+if [ -z $DATABASE_NAME ] && [ create_action = true ]
 then
     echo
     echo "(Error Message 004)  You did not include the proper use of the --database-name=<DATABASE_NAME> argument in the call."
@@ -78,7 +78,7 @@ then
 fi
 
 # Check required --database-name argument was supplied
-if [ -z $CCAF_SECRETS_PATH ]
+if [ -z $CCAF_SECRETS_PATH ] && [ create_action = true ]
 then
     echo
     echo "(Error Message 005)  You did not include the proper use of the --ccaf-secrets-path=<CCAF_SECRETS_PATH> argument in the call."
