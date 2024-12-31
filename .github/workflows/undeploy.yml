@@ -30,7 +30,8 @@ run-name: ${{ github.workflow }} ${{ github.ref_name }} branch to the ${{ github
 
 jobs:
   terraform-destroy:
-    runs-on: ${{ github.event.inputs.aws_environment }}
+    # runs-on: ${{ github.event.inputs.aws_environment }}
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -84,7 +85,8 @@ jobs:
   lambda-unpublish:
     name: "Unpublish docker image from Amazon ECR"
     needs: terraform-destroy
-    runs-on: ${{ github.event.inputs.aws_environment }}
+    # runs-on: ${{ github.event.inputs.aws_environment }}
+    runs-on: self-hosted
     steps:
       - name: Get AWS Environment Info
         id: aws-environment-info
