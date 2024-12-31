@@ -169,5 +169,8 @@ def lambda_handler(event, context):
         processed_statement_name = ConfluentTools.get_statement_name(table_result)
         print("Statement has been deployed as: " + processed_statement_name)
     except Exception as e:
-        print(f"An error occurred during data insertion: {e}")
-        exit(1)
+        logger.error(f"An error occurred during data insertion: {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
