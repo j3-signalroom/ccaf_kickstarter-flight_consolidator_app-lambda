@@ -4,6 +4,7 @@
 
 <!-- toc -->
 + [1.0 Let's get started!](#10-lets-get-started)
++ [2.0 Visualizing the Terraform Configuration](#20-visualizing-the-terraform-configuration)
 <!-- tocstop -->
 
 ## 1.0 Let's get started!
@@ -96,3 +97,16 @@
         ![github-deploy-workflow-screenshot](.blog/images/github-run-deploy-workflow-screenshot.png)
 
 By following these steps, you will set up the necessary infrastructure to build and deploy the **Flight Consolidator Confluent Cloud for Apache Flink App**!
+
+## 2.0 Visualizing the Terraform Configuration
+Below is the Terraform visualization of the Terraform configuration.  It shows the resources and their dependencies, making the infrastructure setup easier to understand.
+
+![Terraform Visulization](.blog/images/terraform-visualization.png)
+
+> **To fully view the image, open it in another tab on your browser to zoom in.**
+
+When you update the Terraform Configuration, to update the Terraform visualization, use the [`terraform graph`](https://developer.hashicorp.com/terraform/cli/commands/graph) command with [Graphviz](https://graphviz.org/) to generate a visual representation of the resources and their dependencies.  To do this, run the following command:
+
+```bash
+terraform graph | dot -Tpng > .blog/images/terraform-visualization.png
+```
