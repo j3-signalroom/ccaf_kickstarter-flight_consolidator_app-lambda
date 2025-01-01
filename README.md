@@ -136,4 +136,4 @@ Before running any of the GitHub workflows provided in the repository, you must 
 
 ---
 
-By following these steps, you will set up the necessary infrastructure to build and deploy the **Flight Consolidator Confluent Cloud for Apache Flink App**!
+Upon completing the steps outlined above, you will have successfully deployed the **Flight Consolidator Flink Job Graph** to your Confluent Cloud for Apache Flink environment. This deployment not only exemplifies industry-leading best practices for managing Flink Job Graphs but also harnesses the full power and seamless integration of Confluent Cloud for Apache Flink. Empower your data processing workflows with unparalleled efficiency, scalability, and reliability through this cutting-edge demonstration.
