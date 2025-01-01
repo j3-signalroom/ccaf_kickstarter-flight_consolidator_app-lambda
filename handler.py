@@ -10,7 +10,7 @@ import json
 import logging
 
 
-__copyright__  = "Copyright (c) 2024 Jeffrey Jonathan Jennings"
+__copyright__  = "Copyright (c) 2024-2025 Jeffrey Jonathan Jennings"
 __credits__    = ["Jeffrey Jonathan Jennings"]
 __license__    = "MIT"
 __maintainer__ = "Jeffrey Jonathan Jennings"

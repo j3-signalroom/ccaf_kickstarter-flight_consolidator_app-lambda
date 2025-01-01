@@ -1,6 +1,6 @@
 [project]
 name = "flight_consolidator_app"
-version = "0.01.00.000"
+version = "0.03.00.000"
 description = "Confluent Cloud for Apache Flink (CCAF) Flight Consolidator App Lambda"
 readme = "README.md"
 authors = [
