@@ -64,7 +64,7 @@ Execute the `launch-from-locally.sh` script to:
 - create an AWS Elastic Container Registry (ECR) repository, 
 - build the AWS Lambda Docker container, 
 - publish it to the newly created ECR repository, 
-- and then run the Terraform configuration to either create or destroy the IAM Policy and Role for the Lambda, and
+- and then run the [Terraform configuration](.blog/terraform-configuration.md) to either create or destroy the IAM Policy and Role for the Lambda, and
 - invoke (run) the Lambda.
 
 Use the following command format:
@@ -115,7 +115,7 @@ Before running any of the GitHub workflows provided in the repository, you must 
 
 - On the **Deploy** workflow page, click the **Run workflow** button.
 
-- A workflow dialog box will appear. Fill in the necessary details and click **Run workflow** to initiate the building and publishing the Lambda docker container to ECR, to create the IAM Policy and Role for the Lambda, and then invoke (run) the Lambda.
+- A workflow dialog box will appear. Fill in the necessary details and click **Run workflow** to initiate the building and publishing the Lambda docker container to ECR, and using Terraform to create the IAM Policy and Role for the Lambda and then invoke (run) the Lambda.
 
     ![github-deploy-workflow-screenshot](.blog/images/github-run-deploy-workflow-screenshot.png)
 
