@@ -40,8 +40,10 @@ def lambda_handler(event, context):
         context (object): The metadata about the invocation, function, and execution environment.
 
     Returns:
-        statusCode: 200 for a successfully run of the function.
-        body: List of the secret names updated by the function.
+        statusCode with a message in the body: 
+            200 for a successfully run of the function.
+            400 for a missing required field.
+            500 for a critical error.
     """
     # Set up the logger.
     logger = logging.getLogger()
@@ -169,6 +171,10 @@ def lambda_handler(event, context):
         table_result = combined_airlines.execute_insert(flight_avro_table_path.get_full_name())
         processed_statement_name = ConfluentTools.get_statement_name(table_result)
         logger.info(f"Statement has been deployed as: {processed_statement_name}")
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'message': 'Data processed and inserted successfully.'})
+        }
     except Exception as e:
         logger.error(f"An error occurred during data insertion: {e}")
         return {
