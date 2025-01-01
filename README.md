@@ -16,6 +16,7 @@ This repository empowers the deployment of a robust [Flink Job Graph](https://gi
         - [**1.2.2 Set Required Secrets and Variables**](#122-set-required-secrets-and-variables)
         - [**1.2.3 Navigate to the Actions Page**](#123-navigate-to-the-actions-page)
         - [**1.2.4 Select and Run the Deploy Workflow**](#124-select-and-run-the-deploy-workflow)
++ [**2.0 Resources**](#20-resources)
 <!-- tocstop -->
 
 ---
@@ -58,7 +59,7 @@ cd path/to/ccaf_kickstarter-flight_consolidator_app-lambda/
 
    Replace `path/to/` with the actual path where your repository is located.
 
-#### **1.1.3 **Launch from your local machine the supplied Bash script to Publish (Create) or Unpublish (Delete) the Lambda Function**
+#### **1.1.3 Launch from your local machine the supplied Bash script to Publish (Create) or Unpublish (Delete) the Lambda Function**
 Execute the `launch-from-locally.sh` script to:
 - create an AWS Elastic Container Registry (ECR) repository, 
 - build the AWS Lambda Docker container, 
@@ -121,3 +122,10 @@ Before running any of the GitHub workflows provided in the repository, you must 
 ---
 
 _Upon completing the steps outlined above, you will have successfully deployed the **Flight Consolidator Flink Job Graph** to your [Confluent Cloud for Apache Flink (CCAF)](https://docs.confluent.io/cloud/current/flink/overview.html) environment. This deployment not only exemplifies industry-leading best practices for managing [Flink Job Graphs](https://github.com/j3-signalroom/j3-techstack-lexicon/blob/main/apache-flink-glossary.md#jobgraph) but also harnesses the full power and seamless integration of Confluent Cloud for Apache Flink. Empower your data processing workflows with unparalleled efficiency, scalability, and reliability through this cutting-edge demonstration._
+
+## 2.0 Resources
+[Flink Applications Powered by Python on Confluent Cloud for Apache Flink (CCAF)](https://github.com/j3-signalroom/apache_flink-kickstarter/blob/main/ccaf/README.md)
+
+[Confluent Cloud for Apache Flink (CCAF) Documentation](https://docs.confluent.io/cloud/current/flink/overview.html)
+
+[Apache Flink Kickstarter](https://github.com/j3-signalroom/apache_flink-kickstarter)
