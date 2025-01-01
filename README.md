@@ -32,12 +32,21 @@ This repository empowers the deployment of a robust [Flink Job Graph](https://gi
 ### 1.1 **Use the local Bash scripts supplied in the repo to deploy the Lambda function**
 
 #### 1.1.1 **Take care of the cloud and local environment prequisities listed below:**
-    > You need to have the following cloud accounts:
-    > - [AWS Account](https://signin.aws.amazon.com/) *with SSO configured*
-    >  [`aws2-wrap` utility](https://pypi.org/project/aws2-wrap/#description)
+You need to have the following cloud accounts:
+- [AWS Account](https://signin.aws.amazon.com/) *with SSO configured*
+- [Confluent Cloud Account](https://confluent.cloud/)
+- [Docker Account](https://docker.com)
+- [GitHub Account](https://github.com) *with OIDC configured for AWS*
+- [Terraform Cloud Account](https://app.terraform.io/)
 
-    > You need to have the following installed on your local machine:
-    > - [AWS CLI version 2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+You need to have the following installed on your local machine:
+- [AWS CLI version 2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- [`aws2-wrap` utility](https://pypi.org/project/aws2-wrap/#description)
+- [Confluent CLI version 3 or higher](https://docs.confluent.io/confluent-cli/4.0/overview.html)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Java JDK (Java Development Kit) 11](https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html)
+- [Python 3.11](https://www.python.org/downloads/release/python-3119/)
+- [Terraform CLI version 1.9.3 or higher](https://developer.hashicorp.com/terraform/install)
 
 #### 1.1.2 **Clone the repo:**
 ```bash
