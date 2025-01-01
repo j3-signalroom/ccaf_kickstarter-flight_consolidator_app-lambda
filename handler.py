@@ -77,6 +77,7 @@ def lambda_handler(event, context):
                 .set_organization_id(settings[ORGANIZATION_ID])
                 .set_environment_id(settings[ENVIRONMENT_ID])
                 .set_compute_pool_id(settings[FLINK_COMPUTE_POOL_ID])
+                .set_principal_id(settings[FLINK_PRINCIPAL_ID])
                 .build()
         )
     except ClientError as e:
