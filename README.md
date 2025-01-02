@@ -60,7 +60,7 @@ cd path/to/ccaf_kickstarter-flight_consolidator_app-lambda/
    Replace `path/to/` with the actual path where your repository is located.
 
 #### **1.1.3 Launch from your local machine the supplied Bash script to Publish (Create) or Unpublish (Delete) the Lambda Function**
-Execute the `launch-from-locally.sh` script to:
+Execute the `run-local.sh` script to:
 - create an AWS Elastic Container Registry (ECR) repository, 
 - build the AWS Lambda Docker container, 
 - publish it to the newly created ECR repository, 
@@ -70,7 +70,7 @@ Execute the `launch-from-locally.sh` script to:
 Use the following command format:
 
 ```bash
-scripts/launch-from-locally.sh <create | delete> --profile=<SSO_PROFILE_NAME> --catalog-name=<CATALOG_NAME> --database-name=<DATABASE_NAME> --ccaf-secrets-path=<CCAF_SECRETS_PATH>
+scripts/run-local.sh <create | delete> --profile=<SSO_PROFILE_NAME> --catalog-name=<CATALOG_NAME> --database-name=<DATABASE_NAME> --ccaf-secrets-path=<CCAF_SECRETS_PATH>
 ```
 
 **Replace Argument Placeholders**
@@ -82,7 +82,7 @@ scripts/launch-from-locally.sh <create | delete> --profile=<SSO_PROFILE_NAME> --
 
 For example, to publish the Lambda from your local machine, use the following command:
 ```bash
-scripts/launch-from-locally.sh create --profile=my-aws-sso-profile --catalog-name=flink_kickstarter --database-name=flink_kickstarter --ccaf-secrets-path="/confluent_cloud_resource/flink_kickstarter/flink_compute_pool"
+scripts/run-local.sh create --profile=my-aws-sso-profile --catalog-name=flink_kickstarter --database-name=flink_kickstarter --ccaf-secrets-path="/confluent_cloud_resource/flink_kickstarter/flink_compute_pool"
 ```
 
 Replace `my-aws-sso-profile` with your actual AWS SSO profile name, `flink_kickstart` Flink catalog (Environment), `flink_kickstart` Flink database (Kafka Cluster) and the `/confluent_cloud_resource/flink_kickstarter/flink_compute_pool` AWS Secrets Manager secrets path.

@@ -2,10 +2,10 @@
 
 #
 # *** Script Syntax ***
-# scripts/launch-from-locally.sh <create | delete> --profile=<SSO_PROFILE_NAME>
-#                                                  --catalog-name=<CATALOG_NAME> \
-#                                                  --database-name=<DATABASE_NAME> \
-#                                                  --ccaf-secrets-path=<CCAF_SECRETS_PATH>
+# scripts/run-local.sh <create | delete> --profile=<SSO_PROFILE_NAME>
+#                                        --catalog-name=<CATALOG_NAME>
+#                                        --database-name=<DATABASE_NAME>
+#                                        --ccaf-secrets-path=<CCAF_SECRETS_PATH>
 #
 
 # Check required command (create or delete) was supplied
