@@ -12,4 +12,3 @@ dependencies = [
     "confluent-flink-table-api-python-plugin>=1.20.42",
     "setuptools>=65.5.1",
 ]
-

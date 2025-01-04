@@ -35,9 +35,10 @@ def lambda_handler(event, context):
     the Kafka sink table, reads from source tables, transforms the data, and writes
     to the sink.
 
-    Args:
-        event (dict): The event data passed to the Lambda function.
-        context (object): The metadata about the invocation, function, and execution environment.
+    Args(s):
+        eevent (Dict)          :  The event data passed to the Lambda function.
+        context (LambdaContext):  The metadata about the invocation, function, and 
+                                  execution environment.
 
     Returns:
         statusCode with a message in the body: 
@@ -166,14 +167,22 @@ def lambda_handler(event, context):
 
     # Insert the combined record into the sink table.
     try:
+        # Supply a friendly statement name to easily search for it only in the Confluent Web UI.
+        # However, the name is required to be unique within environment and region, so a UUID is
+        # added.
         statement_name = "combined-flight-data-" + str(uuid.uuid4())
         tbl_env.get_config().set("client.statement-name", statement_name)
+
+        # Execute the insert statement.
         table_result = combined_airlines.execute_insert(flight_avro_table_path.get_full_name())
+
+        # Get the processed statement name.
         processed_statement_name = ConfluentTools.get_statement_name(table_result)
-        logger.info(f"Statement has been deployed as: {processed_statement_name}")
+        success_message = f"Data processed and inserted successfully as: {processed_statement_name}"
+        logger.info(success_message)
         return {
             'statusCode': 200,
-            'body': json.dumps({'message': 'Data processed and inserted successfully.'})
+            'body': json.dumps({'message': success_message})
         }
     except Exception as e:
         logger.error(f"An error occurred during data insertion: {e}")
