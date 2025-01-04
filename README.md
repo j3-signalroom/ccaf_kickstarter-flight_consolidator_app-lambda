@@ -126,6 +126,8 @@ Before running any of the GitHub workflows provided in the repository, you must 
 _Upon completing the steps outlined above, you will have successfully deployed the **Flight Consolidator Flink Application** to your [Confluent Cloud for Apache Flink (CCAF)](https://docs.confluent.io/cloud/current/flink/overview.html) environment. This deployment not only exemplifies industry-leading best practices for managing Flink Application but also harnesses the full power and seamless integration of Confluent Cloud for Apache Flink. Empower your data processing workflows with unparalleled efficiency, scalability, and reliability through this cutting-edge demonstration._
 
 ## 2.0 Resources
+[Confluent Cloud for Apache Flink: Best Practices for Deploying Table API Applications with GitHub and Terraform](.blog/best-practices-action-blog-series-ccaf-app-deployment.md)
+
 [Flink Applications Powered by Python on Confluent Cloud for Apache Flink (CCAF)](https://github.com/j3-signalroom/apache_flink-kickstarter/blob/main/ccaf/README.md)
 
 [Confluent Cloud for Apache Flink (CCAF) Documentation](https://docs.confluent.io/cloud/current/flink/overview.html)

@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/python:3.11.2024.11.22.15
 
-# Install Python, Java, and other dependencies
+# Install Java 17
 RUN yum clean all && \
     yum -y update && \
     yum -y install java-17-amazon-corretto-devel && \
