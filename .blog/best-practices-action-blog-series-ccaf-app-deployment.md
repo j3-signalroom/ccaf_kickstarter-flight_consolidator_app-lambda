@@ -88,7 +88,12 @@ Curious to learn more about [Astral](https://astral.sh/)'s `uv`? Check these out
 - Video: [`uv` IS THE FUTURE OF PYTHON PACKING!](https://www.youtube.com/watch?v=8UuW8o4bHbw)
 
 #### 2.1.2 The ```handler.py``` Python Script File
-To keep things streamlined, I consolidated all import statements, constants, and the AWS Lambda handler function into a single module—the code in `handler.py` is the real star here. Below is a breakdown of its structure:
+
+![code-architectural-drawing](images/code-architectural-drawing.png)
+
+To keep things streamlined, I consolidated all import statements, constants, and the AWS Lambda handler function into a single module—the code in `handler.py` is the real star here.  The Lambda function reads data from two Kafka topics, combines the data, and writes the combined data to a Kafka sink topic.  The Lambda function is triggered by an event that contains the catalog name, database name, and path to the Confluent Cloud for Apache Flink secrets in AWS Secrets Manager.  The Lambda function uses the Confluent Cloud for Apache Flink secrets to create a TableEnvironment with the Confluent Cloud for Apache Flink settings.  The Lambda function then creates the Kafka sink table in the Confluent Cloud for Apache Flink catalog, reads data from the airline table, combines the data, and writes the combined data to the Kafka sink table.
+
+What follows is a breakdown of its structure:
 
 ##### 2.1.2.1 Import Statements
 Here are the import statements you’ll need to include at the top of your Python script:
