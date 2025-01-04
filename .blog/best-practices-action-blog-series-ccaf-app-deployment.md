@@ -365,7 +365,9 @@ The code snippet below inserts the combined record into the sink table. If the r
 ```
 
 #### 2.1.3 The ```Dockerfile``` File
-The Dockerfile is a text file that contains a series of commands that are executed by the Docker daemon to build a Docker image.  Here’s the Dockerfile you’ll need to create to package your Lambda function as a Docker container:
+The Dockerfile is a text file that contains a series of commands that are executed by the Docker daemon to build a Docker image.  The `public.ecr.aws/lambda/python:3.11.2024.11.22.15` Docker image is the official AWS-provided base image specifically designed for creating container-based AWS Lambda functions using Python.  Also, this Dockerfile installs the Java 17 JDK, sets the JAVA_HOME environment variable, installs the required Python packages, copies the handler.py Python script to the Lambda function directory, and sets the handler for the Lambda function.
+
+Below is the Dockerfile you’ll need to create to package your Lambda function as a Docker container:
 
 ```dockerfile
 FROM public.ecr.aws/lambda/python:3.11.2024.11.22.15
@@ -395,6 +397,8 @@ COPY handler.py ${LAMBDA_TASK_ROOT}
 # Set the handler
 CMD ["handler.lambda_handler"]
 ```
+
+
 
 #### 2.1.4 The ```requirements.txt``` File
 The requirements.txt file contains a list of Python packages that are required by your Lambda function.  Here’s the requirements.txt file you’ll need to create to install the required Python packages:
