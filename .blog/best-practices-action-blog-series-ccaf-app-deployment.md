@@ -127,7 +127,7 @@ ORGANIZATION_ID = "organization.id"
 ```
 
 ##### 2.1.2.3 The Lambda Handler Function
-The Lambda function serves as the entry point for your AWS Lambda application written in Python. It is a Python function that AWS Lambda invokes when your Lambda function is executed (i.e, invoked).  So, to put it another way, as my mom would say (yes, she was a programmer back in the day), this is where your Flink app’s life begins! 🚀
+The Lambda function serves as the entry point for your AWS Lambda application written in Python. It is a Python function that AWS Lambda invokes when your Lambda function is executed (i.e, invoked).  So, to put it another way, as my mom 💜 would say (yes, she was a programmer back in the day), this is where your Flink app’s life begins! 🚀
 
 The code uses a basic signature for the handler function, which is required by AWS Lambda:
 
@@ -310,6 +310,16 @@ The code snippet below constructs a filter condition that ensures all columns sp
         lambda accumulated_columns, current_column: accumulated_columns & col(current_column).is_not_null, flight_columns[1:], col(flight_columns[0]).is_not_null
     )
 ```
+
+The above code snippet demonstrates functional programming principles in Python. While it may not cover all aspects of functional programming, it effectively utilizes key constructs: 
+
+- Utilizing higher-order functions (`reduce`).
+- Employing `lambda` functions [not to be confused with AWS Lambda functions 😉] for concise, inline operations.
+- Maintaining immutability by not altering the original data structures.
+- Adopting a declarative approach to specify data transformations.
+
+I highlighted this code snippet to emphasize the importance of functional programming in data streaming frameworks like Apache Flink or Apache Spark. Functional programming is a powerful paradigm that can help you write more concise, readable, and maintainable code. By leveraging functional programming constructs, you can easily express complex data transformations and processing logic clearly and concisely.
+Moreover, it shows that with the Table API in CCAF, you can use your functional programming skills in Flink just as you do in other Python application development. This is an excellent way to leverage your existing Python skills and apply them to the world of data streaming and processing. _This is something that one of **my clients** wanted to know was possible, and I was able to demonstrate that it is, and so can you!_
 
 ###### 2.1.2.3.8 Part 8 of 9 of the Lambda Handler Function Code
 The code snippet below combines the two tables, the SkyOne table and the Sunset table, into one table. The combined table is filtered using the filter condition to ensure that all columns specified in the flight_columns list are not null.
