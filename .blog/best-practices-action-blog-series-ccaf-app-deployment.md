@@ -367,7 +367,7 @@ The code snippet below inserts the combined record into the sink table. If the r
 #### 2.1.3 The ```Dockerfile``` File
 The Dockerfile is a text file that contains a series of commands that are executed by the Docker daemon to build a Docker image.  The `public.ecr.aws/lambda/python:3.11.2024.11.22.15` Docker image is the official AWS-provided base image specifically designed for creating container-based AWS Lambda functions using Python.  Also, this Dockerfile installs the Java 17 JDK, sets the JAVA_HOME environment variable, installs the required Python packages, copies the handler.py Python script to the Lambda function directory, and sets the handler for the Lambda function.
 
-Below is the Dockerfile you’ll need to create to package your Lambda function as a Docker container:
+Below is the Dockerfile you’ll need to create to package the Lambda function as a Docker container:
 
 ```dockerfile
 FROM public.ecr.aws/lambda/python:3.11.2024.11.22.15
@@ -398,10 +398,8 @@ COPY handler.py ${LAMBDA_TASK_ROOT}
 CMD ["handler.lambda_handler"]
 ```
 
-
-
 #### 2.1.4 The ```requirements.txt``` File
-The requirements.txt file contains a list of Python packages that are required by your Lambda function.  Here’s the requirements.txt file you’ll need to create to install the required Python packages:
+The requirements.txt file contains a list of Python packages that are required by the Lambda function.  Here’s the requirements.txt file you’ll need to create to install the required Python packages:
 
 ```text
 boto3>=1.35.90
@@ -410,18 +408,341 @@ setuptools>=65.5.1
 lxml==4.9.2
 ```
 
-## 2.2 The Terraform Configuration
+## 2.2 GitHub: The CI/CD Pipeline
 
-**<TO BE COMPLETED>**
+*** **TO BE COMPLETED** ***
 
-## 2.3 GitHub: The CI/CD Pipeline
+## 2.3 The Terraform Configuration
+Terraform is a powerful tool for automating infrastructure provisioning and management.  In this section, we’ll walk through the Terraform configuration that provisions the AWS Lambda function and deploys the Confluent Cloud for Apache Flink application.
 
-**<TO BE COMPLETED>**
+![terraform-visualization](images/terraform-visualization.png)
+
+> **Note:**  _I use Terraform Cloud, a comprehensive, managed cloud service provided by HashiCorp that enhances the capabilities of Terraform for Infrastructure as Code (IaC). It offers a suite of features designed to streamline, secure, and optimize the process of provisioning and managing infrastructure across various environments._
+
+Our Terraform project is organized into four configuration files:
+- ```main.tf```: The primary Terraform configuration file that sets the Terraform cloud settings and define the local variables that will be used throughout defines the AWS Lambda function and the required resources.
+- ```variables.tf```: The Terraform variables file that defines the input variables used in the Terraform configuration.
+- ```provider.tf```: The Terraform provider file that defines the AWS provider configuration.
+- ```aws-lambda-setup.tf```: The Terraform file that defines the AWS Lambda function and the required resources.
+
+### 2.3.1 The ```main.tf``` Terraform Configuration File
+The `main.tf` file is the primary Terraform configuration file in our Terraform project.  It is the entry point where we:
+- Define High-Level Resources
+- Reference Variables and Modules
+- Orchestrate Dependencies
+
+In this project, we define the Terraform cloud settings, local variables, and the AWS provider configuration.  We also reference the `variables.tf` file to define the input variables used in the Terraform configuration.  The `main.tf` file is the central configuration file
+
+Below is the configuration of the `main.tf` file:
+```hcl
+terraform {
+    cloud {
+      organization = "signalroom"
+
+        workspaces {
+            name = "ccaf-kickstarter-flight-consolidator-app"
+        }
+  }
+
+  required_providers {
+        aws = {
+            source  = "hashicorp/aws"
+            version = "~> 5.82.2"
+        }
+    }
+}
+
+locals {
+    # Repo name and URIs
+    repo_name    = "ccaf_kickstarter-flight_consolidator_app"
+    repo_uri     = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${local.repo_name}:latest"
+    ecr_repo_uri = "arn:aws:ecr:${var.aws_region}:${var.aws_account_id}:repository/${local.repo_name}"
+}
+```
+
+Below is a breakdown of the key components of the `main.tf` file:
+- **cloud** block: Configures Terraform to use Terraform Cloud, specifying the `organization` (`signalroom`) and the `workspace` (`ccaf-kickstarter-flight-consolidator-app`).
+
+    > **Note:** _The organization key specifies the Terraform Cloud `organization` that the workspace belongs to. The `workspace` key specifies the name of the workspace within the organization.  You need to change the `organization` to the organization name defined in your Terraform Cloud account._
+
+- **required_providers** block: Declares the AWS provider from the HashiCorp registry, pinning it to version `~> 5.82.2`.
+- **local** block: Defines local variables that are used throughout the Terraform configuration. 
+   * **repo_name**: Defines a short, descriptive name for the Docker image repository in Amazon ECR.  
+   * **repo_uri**: Constructs the full URI (account + region + repository name + `:latest` tag) for pushing/pulling Docker images.  
+   * **ecr_repo_uri**: Defines the Amazon Resource Name (ARN) of the ECR repository, used by other Terraform resources that need to reference the repository.
+
+### 2.3.2 The ```variables.tf``` Terraform Configuration File
+```hcl
+variable "aws_region" {
+    description = "The AWS Region."
+    type        = string
+}
+
+variable "aws_account_id" {
+    description = "The AWS Account ID."
+    type        = string
+}
+
+variable "aws_access_key_id" {
+    description = "The AWS Access Key ID."
+    type        = string
+    default     = ""
+}
+
+variable "aws_secret_access_key" {
+    description = "The AWS Secret Access Key."
+    type        = string
+    default     = ""
+}
+
+variable "aws_session_token" {
+    description = "The AWS Session Token."
+    type        = string
+    default     = ""
+}
+
+variable "catalog_name" {
+    description = "The CCAF Catalog Name."
+    type        = string
+    default     = ""
+}
+
+variable "database_name" {
+    description = "The CCAF Database Name."
+    type        = string
+    default     = ""
+}
+
+variable "ccaf_secrets_path" {
+    description = "The CCAF AWS Secrets Manager secrets path."
+    type        = string
+}
+
+variable "aws_lambda_memory_size" {
+    description = "AWS Lambda allocates CPU power in proportion to the amount of memory configured. Memory is the amount of memory available to your Lambda function at runtime. You can increase or decrease the memory and CPU power allocated to your function using the Memory setting. You can configure memory between 128 MB and 10,240 MB in 1-MB increments. At 1,769 MB, a function has the equivalent of one vCPU (one vCPU-second of credits per second)."
+    type = number
+    default = 128
+    
+    validation {
+        condition = var.aws_lambda_memory_size >= 128 && var.aws_lambda_memory_size <= 10240
+        error_message = "AWS Lambda memory size, `aws_lambda_memory_size`, must be 1 up to a maximum value of 10,240."
+    }
+}
+
+variable "aws_lambda_timeout" {
+    description = "AWS Lambda runs your code for a set amount of time before timing out. Timeout is the maximum amount of time in seconds that a Lambda function can run. The default value for this setting is 900 seconds, but you can adjust this in increments of 1 second up to a maximum value of 900 seconds (15 minutes)."
+    type = number
+    default = 900
+    
+    validation {
+        condition = var.aws_lambda_timeout >= 1 && var.aws_lambda_timeout <= 900
+        error_message = "AWS Lambda timeout, `aws_lambda_timeout`, must be 1 up to a maximum value of 900."
+    }
+}
+
+variable "aws_log_retention_in_days" {
+    description = "Specifies the number of days you want to retain log events in the specified log group. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653, and 0. If you select 0, the events in the log group are always retained and never expire."
+    type = number
+    default = 7
+
+    validation {
+        condition = contains([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653, 0], var.aws_log_retention_in_days)
+        error_message = "AWS Log Retention in Days, `aws_log_retention_in_days`, must be 1 up to a maximum value of 900."
+    }
+}
+```
+
+Below is a quick overview of the Terraform variables defined here:
+
+1. **AWS Configuration**  
+   - **aws_region** (string)  
+   - **aws_account_id** (string)  
+   - **aws_access_key_id**, **aws_secret_access_key**, **aws_session_token** (strings)  
+   These variables capture your AWS credentials and region details, ensuring Terraform can authenticate and deploy resources in the correct AWS environment.
+
+2. **Confluent Cloud for Apache Flink (CCAF) Settings**  
+   - **catalog_name** (string)  
+   - **database_name** (string)  
+   - **ccaf_secrets_path** (string)  
+   These parameters help configure and manage your CCAF resources (e.g., specifying the catalog and database, plus an AWS Secrets Manager path).
+
+3. **Lambda Resource Configuration**  
+   - **aws_lambda_memory_size** (number; validated between 128 MB and 10,240 MB)  
+     - Controls how much memory (and proportionate CPU) is allocated to the Lambda function.  
+   - **aws_lambda_timeout** (number; validated between 1 and 900 seconds)  
+     - Determines how long the function can run before timing out (up to 15 minutes).  
+   - **aws_log_retention_in_days** (number; must be one of the allowed values)  
+     - Specifies how long CloudWatch logs are kept—0 to never expire, or a set of valid retention periods.
+
+Each variable includes descriptions and validation rules, helping ensure your Lambda function and CCAF environment are configured correctly while preventing invalid or unsupported settings.
+
+### 2.3.3 The ```provider.tf``` Terraform Configuration File
+```hcl
+provider "aws" {
+    region     = var.aws_region
+    access_key = var.aws_access_key_id
+    secret_key = var.aws_secret_access_key
+    token      = var.aws_session_token
+}
+```
+Below is a quick explanation of the **AWS provider** configuration:
+
+- **Region:** Tells Terraform which AWS region to target for resource creation.  
+- **Credentials:** Pulls access keys and session tokens from variables, allowing Terraform to authenticate with AWS.  
+
+This setup ensures Terraform can manage AWS resources under the specified account and region, using the provided credentials.
+
+### 2.3.4 The ```aws-lambda-setup.tf``` Terraform Configuration File
+Below is a detail walkthrough of how this Terraform configuration provisions the Lambda function and supporting AWS resources:
+
+1. **IAM Role & Assume Role Policy**  
+   ```hcl
+   data "aws_iam_policy_document" "assume_role" {
+     statement {
+       effect = "Allow"
+       principals {
+         type        = "Service"
+         identifiers = ["lambda.amazonaws.com"]
+       }
+       actions = ["sts:AssumeRole"]
+     }
+   }
+
+   resource "aws_iam_role" "flight_consolidator_lambda" {
+     name               = "ccaf_flight_consolidator_app_role"
+     assume_role_policy = data.aws_iam_policy_document.assume_role.json
+   }
+   ```
+   - Creates a role that Lambda can assume, granting the necessary trust relationship.
+
+2. **Secrets Manager & Custom Policy**  
+   ```hcl
+    data "aws_secretsmanager_secret" "ccaf_secrets_path" {
+        name = var.ccaf_secrets_path
+    }
+
+   resource "aws_iam_policy" "flight_consolidator_lambda_policy" {
+        name        = "ccaf_flight_consolidator_app_policy"
+        description = "IAM policy for the flight_consolidator Lambda execution role."
+    
+        policy = jsonencode({
+            Version = "2012-10-17",
+            Statement = [
+            {
+                Action = [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+                ],
+                Effect   = "Allow",
+                Resource = "arn:aws:logs:*:*:*"
+            },
+            {
+                Action = [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability"
+                ],
+                Effect   = "Allow",
+                Resource = local.ecr_repo_uri
+            },
+            {
+                Action = "ecr:GetAuthorizationToken",
+                Effect = "Allow",
+                Resource = "*"
+            },
+            {
+                Action = [
+                "secretsmanager:GetSecretValue"
+                ],
+                Effect = "Allow",
+                Resource = [
+                data.aws_secretsmanager_secret.ccaf_secrets_path.arn
+                ]
+            }
+            ]
+        })
+    }
+    ```
+   - Fetches the specified Secrets Manager resource.  
+   - Builds a policy allowing Lambda to create logs, pull images from ECR, and retrieve secrets from AWS Secrets Manager.
+
+3. **Role-Policy Attachment**  
+    ```hcl
+    # Attach the policy to the role
+    resource "aws_iam_role_policy_attachment" "flight_consolidator_lambda_policy_attachment" {
+        role       = aws_iam_role.flight_consolidator_lambda.name
+        policy_arn = aws_iam_policy.flight_consolidator_lambda_policy.arn
+
+        depends_on = [ 
+            aws_iam_role.flight_consolidator_lambda,
+            aws_iam_policy.flight_consolidator_lambda_policy 
+        ]
+    }
+   ```
+   - Binds the custom policy to the Lambda role so the function can perform the permitted actions.
+
+4. **Lambda Function Creation**  
+   ```hcl
+    resource "aws_lambda_function" "flight_consolidator_lambda_function" {
+        function_name = "ccaf_flight_consolidator_app_function"
+        role          = aws_iam_role.flight_consolidator_lambda.arn
+        package_type  = "Image"
+        image_uri     = local.repo_uri
+        memory_size   = var.aws_lambda_memory_size
+        timeout       = var.aws_lambda_timeout
+
+        depends_on = [ 
+            aws_iam_role.flight_consolidator_lambda 
+        ]
+    }
+   ```
+   - Defines the Lambda function, using **package_type = "Image"** to pull the container image from ECR.  
+   - Configures memory, timeout, and role—forming the core of your deployment.
+
+5. **CloudWatch Log Group**  
+   ```hcl
+   # Create a CloudWatch log group for the Lambda function
+    resource "aws_cloudwatch_log_group" "flight_consolidator_lambda_function_log_group" {
+        name              = "/aws/lambda/${aws_lambda_function.flight_consolidator_lambda_function.function_name}"
+        retention_in_days = var.aws_log_retention_in_days
+    }
+   ```
+   - Establishes a dedicated log group with a chosen retention policy for Lambda’s outputs.
+
+6. **Lambda Invocation**  
+   ```hcl
+    # Lambda function invocation
+    resource "aws_lambda_invocation" "flight_consolidator_lambda_function" {
+        function_name = aws_lambda_function.flight_consolidator_lambda_function.function_name
+
+        input = jsonencode({
+            catalog_name      = var.catalog_name
+            database_name     = var.database_name
+            ccaf_secrets_path = var.ccaf_secrets_path
+        })
+
+        depends_on = [ 
+            aws_iam_policy.flight_consolidator_lambda_policy,
+            aws_lambda_function.flight_consolidator_lambda_function
+        ]
+    }
+   ```
+   - Automatically triggers the Lambda with a JSON payload containing the `catalog_name`, `database_name` and `ccaf_secrets_paths`.
+
+By combining these resources—roles, policies, logs, and function invocations—you create a **secure, robust** pipeline for deploying your Confluent Cloud for Apache Flink application via AWS Lambda.
 
 ## 3.0 Conclusion
 
-**<TO BE COMPLETED>**
+*** **TO BE COMPLETED** ***
 
 ## 4.0 Resources
+[Create a Lambda function using a container image](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html)
 
-**<TO BE COMPLETED>**
+[Apache Flink Kickstarter](https://github.com/j3-signalroom/apache_flink-kickstarter)
+
+[Confluent Cloud for Apache Flink](https://docs.confluent.io/cloud/current/flink/overview.html)
+
+[Flink Applications Powered by Python on Confluent Cloud for Apache Flink (CCAF)](https://github.com/j3-signalroom/apache_flink-kickstarter/blob/main/ccaf/README.md)
+
+[Confluent Cloud for Apache Flink (CCAF) Flight Consolidator App Lambda](https://github.com/j3-signalroom/ccaf_kickstarter-flight_consolidator_app-lambda)
