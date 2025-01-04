@@ -735,6 +735,16 @@ By combining these resources—roles, policies, logs, and function invocations�
 ## 3.0 Conclusion
 We’ve explored the entire journey of deploying a Confluent Cloud for Apache Flink application via AWS Lambda—from designing the Lambda function and crafting the Dockerfile to setting up a GitHub CI/CD pipeline and Terraform infrastructure. By following these best practices, you’ll be able to streamline development, ensure consistent deployments, and fully harness Confluent Cloud’s real-time data processing power. Now, you’re equipped to take your serverless and event-driven workflows to new heights.
 
+For a recap of the deployment process, refer to the architectural drawing below:
+![architectural-drawing-with-deployment-flow-with-numbers](images/architectural-drawing-with-deployment-flow-with-numbers.png)
+
+The numbers correspond to the following section in this blog post:
+
+1. [2.2 GitHub: The CI/CD Pipeline](#22-github-the-cicd-pipeline)
+2. [2.1.2 The ```handler.py``` Python Script File](#212-the-handlerpy-python-script-file)
+3. [2.1.3 The ```Dockerfile``` File](#213-the-dockerfile-file)
+4. [2.3 The Terraform Configuration](#23-the-terraform-configuration)
+
 ## 4.0 Resources
 [Create a Lambda function using a container image](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html)
 
