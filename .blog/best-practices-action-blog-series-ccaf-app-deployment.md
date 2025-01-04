@@ -728,7 +728,7 @@ Below is a detail walkthrough of how this Terraform configuration provisions the
         ]
     }
    ```
-   - Automatically triggers the Lambda with a JSON payload containing the `catalog_name`, `database_name` and `ccaf_secrets_paths`.
+   - Automatically triggers the Lambda with a JSON payload containing the following parameters: `catalog_name`, `database_name` and `ccaf_secrets_paths`.
 
 By combining these resources—roles, policies, logs, and function invocations—you create a **secure, robust** pipeline for deploying your Confluent Cloud for Apache Flink application via AWS Lambda.
 
