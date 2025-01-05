@@ -430,7 +430,282 @@ lxml==4.9.2
 
 ## 2.2 GitHub: The CI/CD Pipeline
 
-*** **TO BE COMPLETED** ***
+![github-actions-workflows-screenshot](.blog/images/github-actions-screenshot.png)
+
+GitHub Actions is a powerful, flexible CI/CD service that allows you to automate your software development workflows.  In this section, we’ll walk through the GitHub Actions workflow that builds the Docker image and pushes it to AWS ECR, and then deploys the AWS Lambda function using Terraform Cloud.
+
+The GitHub Actions workflow is organized into one workflow file, `.github/workflows/deploy.yml` configuration file and one action file, `.github/actions/aws-environment-info.yml` configuration file.
+
+### 2.2.1 The `.github/workflows/deploy.yml` GitHub Actions Workflow File
+
+The `deploy.yml` GitHub Actions workflow file is the central configuration file that orchestrates the overall pipeline and decides when and in what sequence actions or steps should run.  For this repo, the GitHub Actions workflow builds the Docker image and pushes it to AWS ECR, and initializes, plans and applys the Terraform project.
+
+Below is a step-by-step breakdown of the worflow configuration file:
+
+**Step 1 of 5 - Name the workflow**
+
+The configuration file starts with the `name` field, which labels the workflow, making it easy to identify in the GitHub Actions tab:
+
+![github-actions-workflows-screenshot](images/github-actions-screenshot.png)
+
+Then the configuration sets the permission for the workflow to fetch source code and issue OpenID Connect (OIDC) tokens (`id-token: write`) needed for assuming AWS IAM roles securely, and read the contents of the repository (`contents: read`):
+
+```yaml
+name: Deploy
+
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout  
+```
+
+**Step 2 of 5 - Trigger the workflow**
+
+Next, the configuration file specifies the workflow will be triggered manually from the GitHub UI:
+
+![github-deploy-workflow-screenshot](images/github-run-deploy-workflow-screenshot.png)
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      aws_environment:
+        type: choice
+        description: AWS Environment
+        required: true
+        default: dev
+        options:
+          - dev
+          - test
+          - prod
+      aws_region:
+        type: choice
+        description: AWS Region
+        required: true
+        default: us-east-1
+        options:
+          - us-east-1
+          - us-east-2
+          - us-west-1
+          - us-west-2
+      ccaf_secrets_path:
+        type: string
+        description: CCAF Secrets Path
+        required: true
+      catalog_name:
+        type: string
+        description: Catalog Name
+        required: true
+      database_name:
+        type: string
+        description: Database Name
+        required: true
+```
+
+The GitHub UI collects the following parameters for the deployment:
+- `aws_environment`:   The AWS environment name (e.g., dev, test, prod), where each environment is mapped to a specific AWS account.
+- `aws_region`:        The AWS region where the AWS resources will be deployed.
+- `ccaf_secrets_path`: The path to the Confluent Cloud for Apache Flink settings in AWS Secrets Manager.
+- `catalog_name`:      The name of the Confluent Cloud for Apache Flink catalog.
+- `database_name`:     The name of the database in the catalog.
+
+**Step 3 of 5 - Set Run Name**
+
+Next, the configuration file dynamically generates a run name to indicate which branch is deploying to which AWS environment and region:
+
+```yaml
+run-name: ${{ github.workflow }} ${{ github.ref_name }} branch to the ${{ github.event.inputs.aws_region }} ${{ github.event.inputs.aws_environment }} environment
+```
+
+**Step 4 of 5 - AWS Lambda Publish Job**
+
+Next, the configuration file defines the `lambda-publish` job, which builds the Docker image and pushes it to Amazon ECR:
+
+```yaml
+jobs:
+  lambda-publish:
+    name: "Create, build, tag and push docker image to Amazon ECR"
+    runs-on: ${{ github.event.inputs.aws_environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get AWS Environment Info
+        id: aws-environment-info
+        uses: ./.github/actions/aws-environment-info
+        with:
+          aws_environment: ${{ github.event.inputs.aws_environment }}
+          aws_dev_account_id: ${{ vars.AWS_DEV_ACCOUNT_ID }}
+          aws_test_account_id: ${{ vars.AWS_TEST_ACCOUNT_ID }}
+          aws_prod_account_id: ${{ vars.AWS_PROD_ACCOUNT_ID }}
+          aws_region: ${{ github.event.inputs.aws_region }}
+
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ steps.aws-environment-info.outputs.aws_account_id }}:role/GitHubActionsRole
+          aws-region: ${{ github.event.inputs.aws_region }}
+          output-credentials: true
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: "ccaf_kickstarter-flight_consolidator_app"
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+```
+
+**Step 5 of 5 - Terraform Initialize, Plan and Apply Job**
+
+Finally, the configuration file defines the `terraform-init-plan-apply` job, which initializes, plans, and applies the Terraform project:
+
+```yaml
+  terraform-init-plan-apply:
+    needs: lambda-publish
+    runs-on: ${{ github.event.inputs.aws_environment }}
+    steps:
+      - name: Get AWS Environment Info
+        id: aws-environment-info
+        uses: ./.github/actions/aws-environment-info
+        with:
+          aws_environment: ${{ github.event.inputs.aws_environment }}
+          aws_dev_account_id: ${{ vars.AWS_DEV_ACCOUNT_ID }}
+          aws_test_account_id: ${{ vars.AWS_TEST_ACCOUNT_ID }}
+          aws_prod_account_id: ${{ vars.AWS_PROD_ACCOUNT_ID }}
+          aws_region: ${{ github.event.inputs.aws_region }}
+
+      - name: Configure AWS credentials
+        id: aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ steps.aws-environment-info.outputs.aws_account_id }}:role/GitHubActionsRole
+          aws-region: ${{ github.event.inputs.aws_region }}
+          output-credentials: true
+          
+      - name: Terraform Init
+        id: init
+        run:  terraform init
+  
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan
+        env:
+          TF_VAR_aws_account_id: ${{ steps.aws-environment-info.outputs.aws_account_id }}
+          TF_VAR_aws_region: ${{ github.event.inputs.aws_region }}
+          TF_VAR_aws_access_key_id: ${{ steps.aws-credentials.outputs.aws-access-key-id }}
+          TF_VAR_aws_secret_access_key: ${{ steps.aws-credentials.outputs.aws-secret-access-key }}
+          TF_VAR_aws_session_token: ${{ steps.aws-credentials.outputs.aws-session-token }}
+          TF_VAR_ccaf_secrets_path: ${{ github.event.inputs.ccaf_secrets_path }}
+          TF_VAR_catalog_name: ${{ github.event.inputs.catalog_name }}
+          TF_VAR_database_name: ${{ github.event.inputs.database_name }}
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_aws_account_id: ${{ steps.aws-environment-info.outputs.aws_account_id }}
+          TF_VAR_aws_region: ${{ github.event.inputs.aws_region }}
+          TF_VAR_aws_access_key_id: ${{ steps.aws-credentials.outputs.aws-access-key-id }}
+          TF_VAR_aws_secret_access_key: ${{ steps.aws-credentials.outputs.aws-secret-access-key }}
+          TF_VAR_aws_session_token: ${{ steps.aws-credentials.outputs.aws-session-token }}
+          TF_VAR_ccaf_secrets_path: ${{ github.event.inputs.ccaf_secrets_path }}
+          TF_VAR_catalog_name: ${{ github.event.inputs.catalog_name }}
+          TF_VAR_database_name: ${{ github.event.inputs.database_name }}
+```
+
+### 2.2.2 The `.github/actions/aws-environment-info.yml` GitHub Actions Action File
+The `aws-environment-info.yml` GitHub Actions action file packages up reusable functionality (with inputs, outputs, and scripts) that can be plugged into one or more workflows.  For this repo, the GitHub Actions action file retrieves the AWS account ID and AWS region from the AWS environment variables.  The action is called by the `deploy.yml` GitHub Actions workflow file in the `lambda-publish` and `terraform-init-plan-apply` jobs.
+
+Below is a step-by-step breakdown of the action:
+
+**Step 1 of 3 - Action Metadata**
+
+The action file specifies the metadata for the action:
+
+```yaml
+name: "AWS Environment Info"
+description: 'Based on the input of the environment type, the relevant environmental information is provided as output.'
+author: 'Jeffrey Jonathan Jennings (J3)'
+```
+
+- name: The display name of this composite action, which will appear in logs and references (uses: ./.github/actions/aws-environment-info).
+- description: Explains that it sets environment variables (particularly the AWS Account ID) based on which environment (dev, test, prod) was selected.
+- author: Credited as “Jeffrey Jonathan Jennings (J3).”
+
+**Step 2 of 3 - Input & Output**
+
+The action configuration file specifies the input and output parameters for the action:
+
+```yaml
+inputs:
+  aws_environment:
+    required: true
+    description: 'The AWS Environment'
+  aws_dev_account_id:
+    required: true
+    description: 'The AWS Dev Account ID'
+  aws_test_account_id:
+    required: true
+    description: 'The AWS Test Account ID'
+  aws_prod_account_id:
+    required: true
+    description: 'The AWS Prod Account ID'
+  aws_region:
+    required: true
+outputs:
+  aws_account_id:
+    value: ${{ steps.workflow-inputs-output.outputs.AWS_ACCOUNT_ID }}
+```
+
+**Step 3 of 3 - Action Execution**
+
+The action configuration file based on the input of the environment type, the relevant AWS Account ID is provided as output:
+
+```yaml
+runs:
+  using: composite
+  steps:
+    - if: inputs.aws_environment == 'dev'
+      name: dev-environment
+      shell: bash
+      working-directory: ./.github/
+      run: echo "AWS_ACCOUNT_ID=${{ inputs.aws_dev_account_id }}" >> $GITHUB_ENV
+
+    - if: inputs.aws_environment == 'test'
+      name: test-environment
+      shell: bash
+      working-directory: ./.github/
+      run: echo "AWS_ACCOUNT_ID=${{ inputs.aws_test_account_id }}" >> $GITHUB_ENV
+
+    - if: inputs.aws_environment == 'prod'
+      name: prod-environment
+      shell: bash
+      working-directory: ./.github/
+      run: echo "AWS_ACCOUNT_ID=${{ inputs.aws_prod_account_id }}" >> $GITHUB_ENV
+
+    - name: "Display Workflow Inputs"
+      shell: bash
+      working-directory: ./.github/
+      id: workflow-inputs-output
+      run: |
+        echo "AWS_ACCOUNT_ID=${{ env.AWS_ACCOUNT_ID }}" >> $GITHUB_OUTPUT
+        echo "### Workflow Inputs" >> $GITHUB_STEP_SUMMARY
+        echo `date` >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "aws_environment  : ${{ inputs.aws_environment }}" >> $GITHUB_STEP_SUMMARY
+        echo "aws_account_id   : ${{ env.AWS_ACCOUNT_ID }}" >> $GITHUB_STEP_SUMMARY        
+        echo "aws_region       : ${{ inputs.aws_region }}" >> $GITHUB_STEP_SUMMARY
+```
 
 ## 2.3 The Terraform Project
 Terraform is a powerful tool for automating infrastructure provisioning and management.  In this section, we’ll walk through the Terraform project that provisions the AWS Lambda function and deploys the Confluent Cloud for Apache Flink app.
