@@ -31,17 +31,21 @@ ORGANIZATION_ID = "organization.id"
 
 def lambda_handler(event, context):
     """
-    This AWS Lambda function is the main entry point for the Flink app.  It defines
-    the Kafka sink table, reads from source tables, transforms the data, and writes
-    to the sink.
+    This AWS Lambda handler function is the main entry point for the Flink app.  This
+    function fetches from the AWS Secrets Manager the Confluent Cloud for Apache Flink, 
+    the settings (e.g., Flink Compute Pool API key, Compute Pool ID, etc.) to  create 
+    a TableEnvironment with the Confluent Cloud for Apache Flink settings.  Then it
+    read data from two Kafka topics, combines the data, and writes the combined data
+    to a Kafka sink topic in which the Lambda function created.
 
     Args(s):
-        eevent (Dict)          :  The event data passed to the Lambda function.
-        context (LambdaContext):  The metadata about the invocation, function, and 
-                                  execution environment.
+        event (Dict)           :  The event JSON object data, which contains data
+                                  for the `statusCode`, and `body` attributes.
+        context (LambdaContext):  The Lambda metadata that provides invocation, function, 
+                                  and execution environment information.
 
     Returns:
-        statusCode with a message in the body: 
+        `statusCode` with a message in the `body`: 
             200 for a successfully run of the function.
             400 for a missing required field.
             500 for a critical error.
