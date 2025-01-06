@@ -11,7 +11,7 @@ From the moment [Confluent Cloud for Apache Flink (CCAF)](https://docs.confluent
 After weighing the trade-offs of different strategies, I landed on the following best-practice approach for automating a CI/CD pipeline for CCAF:
 1.	**Package the Code:** Build an AWS Lambda function (AWS is my hyperscaler of choice).
 2.	**Dockerize:** Create a `Dockerfile` for the AWS Lambda function.
-3.	**Set Up ECR:** Create an AWS Elastic Container Registry (ECR) to host Docker images.
+3.	**Set Up AWS ECR:** Create an AWS Elastic Container Registry (ECR) to host Docker images.
 4.	**Build & Publish:** From GitHub, build the Docker image and push it to AWS ECR.
 5.	**Provision Lambda:** Use Terraform Cloud from GitHub to spin up the AWS Lambda function.
 6.	**Deploy Flink App:** Invoke the AWS Lambda function (via Terraform) to deploy the Confluent Cloud for Apache Flink application.
@@ -140,7 +140,7 @@ Below is a step-by-step breakdown of the function:
 
 The Lambda function serves as the entry point for your AWS Lambda application written in Python. It is a Python function that AWS Lambda invokes when your Lambda function is triggered.  So, to put it another way, as my mom 💜 would say (yes, she was a programmer back in the day!), this is when the Flink app’s life begins! 🚀
 
-AWS Lambda rewquires at a minimum, a basic signature for the handler function, as shown below:
+AWS Lambda requires at a minimum, a basic signature for the handler function, as shown below:
 
 ```python
 def handler(event, context):
@@ -168,7 +168,7 @@ def handler(event, context):
 
 **Step 2 of 10 - Set up the logger**
 
-Next, the code sets up a logger to log messages at the INFO level. The logger is used to log messages to the AWS CloudWatch Logs service, which is a centralized logging service provided by AWS:
+Next, the code sets up a logger to log messages at the `INFO` level. The logger is used to log messages to the AWS CloudWatch Logs service, which is a centralized logging service provided by AWS:
 
 ```python
     # Set up the logger.
@@ -228,11 +228,11 @@ Next, the code gets the Confluent Cloud for Apache Flink settings from AWS Secre
         }
 ```
 
-> **Note:** _It is assumpted that you have already created the Confluent Cloud for Apache Flink secrets in AWS Secrets Manager when you ran the Terraform configuration you used in the [Apache Flink Kickstarter](https://github.com/j3-signalroom/apache_flink-kickstarter) Project.  If you have not, please follow the instructions in the [README](https://github.com/j3-signalroom/apache_flink-kickstarter/blob/main/README.md#20-lets-get-started)._
+> **Note:** _It is assumed that you have already created the Confluent Cloud for Apache Flink secrets in AWS Secrets Manager when you ran the Terraform configuration you used in the [Apache Flink Kickstarter](https://github.com/j3-signalroom/apache_flink-kickstarter) Project.  If you have not, please follow the instructions in the [README](https://github.com/j3-signalroom/apache_flink-kickstarter/blob/main/README.md#20-lets-get-started)._
 
 **Step 5 of 10 - Specify the Flink Catalog and Database**
 
-Next, the code sets the current catalog and database in the TableEnvironment. The code then gets the catalog from the TableEnvironment using the `catalog_name` field:
+Next, the code sets the current catalog and database in the `TableEnvironment`. The code then gets the catalog from the `TableEnvironment` using the `catalog_name` field:
 
 ```python
     # The catalog name and database name are used to set the current catalog and database.
@@ -313,7 +313,7 @@ Next, the code gets the schema and columns from the airline table. The code then
     sunset_airline = airline.select(*flight_expressions, lit("Sunset"))
 ```
 
-> **Note:** _It is assumpted that you have already created and filled with records the `airline.skyone_avro` and `airline.sunset_avro` Kafka topics when you used with the [Apache Flink Kickstarter](https://github.com/j3-signalroom/apache_flink-kickstarter) Project.  If you have not, please follow the instructions in the [README](https://github.com/j3-signalroom/apache_flink-kickstarter/blob/main/java/README.md#21-avro-formatted-data)._
+> **Note:** _It is assumed that you have already created and filled with records the `airline.skyone_avro` and `airline.sunset_avro` Kafka topics when you used with the [Apache Flink Kickstarter](https://github.com/j3-signalroom/apache_flink-kickstarter) Project.  If you have not, please follow the instructions in the [README](https://github.com/j3-signalroom/apache_flink-kickstarter/blob/main/java/README.md#21-avro-formatted-data)._
 
 **Step 8 of 10 - Use functional programming to build a filter**
 
@@ -429,8 +429,6 @@ lxml==4.9.2
 ```
 
 ## 2.2 GitHub: The CI/CD Pipeline
-
-![github-actions-workflows-screenshot](.blog/images/github-actions-screenshot.png)
 
 GitHub Actions is a powerful, flexible CI/CD service that allows you to automate your software development workflows.  In this section, we’ll walk through the GitHub Actions workflow that builds the Docker image and pushes it to AWS ECR, and then deploys the AWS Lambda function using Terraform Cloud.
 
@@ -638,10 +636,6 @@ description: 'Based on the input of the environment type, the relevant environme
 author: 'Jeffrey Jonathan Jennings (J3)'
 ```
 
-- name: The display name of this composite action, which will appear in logs and references (uses: ./.github/actions/aws-environment-info).
-- description: Explains that it sets environment variables (particularly the AWS Account ID) based on which environment (dev, test, prod) was selected.
-- author: Credited as “Jeffrey Jonathan Jennings (J3).”
-
 **Step 2 of 3 - Input & Output**
 
 The action configuration file specifies the input and output parameters for the action:
@@ -757,15 +751,15 @@ locals {
 ```
 
 The key components of the `main.tf` Terraform configuration file are as follows:
-- **cloud** block: Configures Terraform to use Terraform Cloud, specifying the `organization` (`signalroom`) and the `workspace` (`ccaf-kickstarter-flight-consolidator-app`).
+- **`cloud`** block: Configures Terraform to use Terraform Cloud, specifying the `organization` (`signalroom`) and the `workspace` (`ccaf-kickstarter-flight-consolidator-app`).
 
     > **Note:** _You need to change the `organization` to the organization name defined in your Terraform Cloud account._
 
-- **required_providers** block: Declares the AWS provider from the HashiCorp registry, pinning it to version `~> 5.82.2`.
-- **local** block: Defines local variables that are used throughout the Terraform configuration. 
-   * **repo_name**: Defines a short, descriptive name for the Docker image repository in AWS ECR.  
-   * **repo_uri**: Constructs the full URI (account + region + repository name + `:latest` tag) for pushing/pulling Docker images.  
-   * **ecr_repo_uri**: Defines the Amazon Resource Name (ARN) of the ECR repository, used by other Terraform resources that need to reference the repository.
+- **`required_providers`** block: Declares the AWS provider from the HashiCorp registry, pinning it to version `~> 5.82.2`.
+- **`local`** block: Defines local variables that are used throughout the Terraform configuration. 
+   * **`repo_name`**: Defines a short, descriptive name for the Docker image repository in AWS ECR.  
+   * **`repo_uri`**: Constructs the full URI (account + region + repository name + `:latest` tag) for pushing/pulling Docker images.  
+   * **`ecr_repo_uri`**: Defines the Amazon Resource Name (ARN) of the AWS ECR repository, used by other Terraform resources that need to reference the repository.
 
 ### 2.3.2 The `variables.tf` Terraform Configuration File
 The `variables.tf` file defines the input variables used in the Terraform project.  Each variable includes descriptions and validation rules, helping ensure your AWS Lambda function and CCAF environment are configured correctly while preventing invalid or unsupported settings.
