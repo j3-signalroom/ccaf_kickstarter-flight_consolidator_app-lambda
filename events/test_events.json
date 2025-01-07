@@ -1,0 +1,5 @@
+{
+    "catalog_name":"flink_kickstarter",
+    "database_name":"flink_kickstarter",
+    "ccaf_secrets_path": "/confluent_cloud_resource/flink_kickstarter/flink_compute_pool"
+}
