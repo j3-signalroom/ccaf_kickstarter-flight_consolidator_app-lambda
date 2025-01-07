@@ -1,0 +1,22 @@
+{
+    "configurations": [{
+        "type": "aws-sam",
+        "request": "direct-invoke",
+        "name": "Invoke Lambda",
+        "invokeTarget": {
+            "target": "template",
+            "templatePath": "${workspaceFolder}/template.yaml",
+            "logicalId": "FlightConsolidatorLambda"
+        },
+        "lambda": {
+            "runtime":"python3.11",
+            "payload": {
+                "json": {
+                    "catalog_name":"flink_kickstarter",
+                    "database_name":"flink_kickstarter",
+                    "ccaf_secrets_path": "/confluent_cloud_resource/flink_kickstarter/flink_compute_pool"
+                }
+            }
+        }
+    }]
+}

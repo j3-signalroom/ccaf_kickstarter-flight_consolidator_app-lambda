@@ -1,7 +1,6 @@
 .venv/
 .DS_Store
 **/__pycache__
-.vscode/
 scratchpad.md
 
 # Local .terraform directories
