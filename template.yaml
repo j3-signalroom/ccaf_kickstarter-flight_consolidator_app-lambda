@@ -1,0 +1,13 @@
+Resources:
+  FlightConsolidatorLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageConfig:
+        Command: ["handler.lambda_handler"]
+    Metadata:
+      Dockerfile: /Users/jeffreyjonathanjennings/j3/code_spaces/ccaf_kickstarter-flight_consolidator_app-lambda/Dockerfile
+      DockerContext: /Users/jeffreyjonathanjennings/j3/code_spaces/ccaf_kickstarter-flight_consolidator_app-lambda
+      DockerTag: Latest
+ 
+ 
