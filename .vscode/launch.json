@@ -1,5 +1,7 @@
 {
-    "configurations": [{
+    "configurations": [
+        
+        {
         "type": "aws-sam",
         "request": "direct-invoke",
         "name": "Invoke Lambda",
