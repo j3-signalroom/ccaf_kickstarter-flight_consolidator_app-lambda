@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 The format is base on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.05.00.000] - 2025-01-07
+### Added
+- Issue [#90](https://github.com/j3-signalroom/ccaf_kickstarter-flight_consolidator_app-lambda/issues/90).
+- Issue [#92](https://github.com/j3-signalroom/ccaf_kickstarter-flight_consolidator_app-lambda/issues/92).
+
+### Changed
+- Issue [#88](https://github.com/j3-signalroom/ccaf_kickstarter-flight_consolidator_app-lambda/issues/88).
+
+### Fixed
+- Issue [#94](https://github.com/j3-signalroom/ccaf_kickstarter-flight_consolidator_app-lambda/issues/94).
+
 ## [0.04.00.000] - 2025-01-05
 ### Added
 - Issue [#62](https://github.com/j3-signalroom/ccaf_kickstarter-flight_consolidator_app-lambda/issues/62).
