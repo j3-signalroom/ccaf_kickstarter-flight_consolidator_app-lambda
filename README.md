@@ -1,7 +1,11 @@
 # Confluent Cloud for Apache Flink (CCAF) Flight Consolidator App Lambda
 This repository empowers the deployment of a robust Flink Application to [Confluent Cloud for Apache Flink (CCAF)](https://docs.confluent.io/cloud/current/flink/overview.html) , enabling seamless and continuous real-time streaming. The Flink Application meticulously ingests flight data from the `airline.sunset_avro` and `airline.skyone_avro` Kafka topics, standardizing and unifying the information into a single, consolidated `airline.flight_avro` Kafka topic. By leveraging advanced stream processing capabilities, this deployment ensures high scalability, data consistency, and reliability, providing organizations with a powerful foundation for actionable flight analytics and insightful decision-making.
 
+**Architectural Drawing of the Flink App**
+
 ![code-architectural-drawing](.blog/images/code-architectural-drawing.png)
+
+**Deployment Flow of the Flink App**
 
 ![deployment-flow](.blog/images/deployment-flow.png)
 
