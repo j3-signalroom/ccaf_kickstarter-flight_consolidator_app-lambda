@@ -9,7 +9,7 @@ This repository empowers the deployment of a robust Flink Application to [Conflu
 
 ![deployment-flow](.blog/images/deployment-flow.png)
 
-> _**Note: Unlike the open-source Apache Flink, Confluent Cloud for Apache Flink Table API generates SQL rather than low-level code (DataStream API) as found in open-source Apache Flink, and this SQL is what ultimately gets deployed to Confluent Cloud for Apache Flink!**_
+> **Note:** _Unlike the open-source Apache Flink, Confluent Cloud for the Apache Flink Table API generates SQL rather than the low-level DataStream API code found in open-source Apache Flink. This SQL is ultimately deployed to Confluent Cloud for Apache Flink! The Confluent Flink Table API Python Plugin accomplishes this by converting the code into SQL. Therefore, remember that your code does not execute in Confluent Cloud for Apache Flink; it is simply translated into SQL. This is why this Lambda deployment flow is recommended, as it streamlines the SQL deployment process._
 ---
 
 **Table of Contents**
