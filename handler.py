@@ -151,10 +151,12 @@ def lambda_handler(event, context):
     flight_expressions = [col(field) for field in schema.get_field_names() if field not in exclude_airline_columns]
     flight_columns = [field for field in schema.get_field_names() if field not in exclude_airline_columns]
 
-    # The first table is the SkyOne table that is read in.
+    # The first table is the SkyOne table that is read in.  In this select, the airline column is set to the 
+    # literal word "SkyOne", and the columns are "unpacked" from the airline table.
     skyone_airline = airline.select(*flight_expressions, lit("SkyOne"))
 
-    # The second table is the Sunset table that is read in.
+    # The second table is the Sunset table that is read in.  In this select, the airline column is set to the 
+    # literal word "Sunset", and the columns are "unpacked" from the airline table.
     sunset_airline = airline.select(*flight_expressions, lit("Sunset"))
 
     # Build a compound expression, ensuring each column is not null
@@ -171,9 +173,8 @@ def lambda_handler(event, context):
 
     # Insert the combined record into the sink table.
     try:
-        # Supply a friendly statement name to easily search for it only in the Confluent Web UI.
-        # However, the name is required to be unique within environment and region, so a UUID is
-        # added.
+        # Supply a friendly statement name to easily identify the Flink Statement in the Cloud Console.
+        # However, the name is required to be unique across environments and regions, so a UUID is appended.
         statement_name = "combined-flight-data-" + str(uuid.uuid4())
         tbl_env.get_config().set("client.statement-name", statement_name)
 
