@@ -9,6 +9,7 @@ This repository empowers the deployment of a robust Flink Application to [Conflu
 
 ![deployment-flow](.blog/images/deployment-flow.png)
 
+> _**Note: Unlike the open-source Apache Flink, Confluent Cloud for Apache Flink Table API generates SQL rather than low-level code (DataStream API) as found in open-source Apache Flink, and this SQL is what ultimately gets deployed to Confluent Cloud for Apache Flink!**_
 ---
 
 **Table of Contents**
