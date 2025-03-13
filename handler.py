@@ -4,10 +4,12 @@ from pyflink.table.confluent import ConfluentTableDescriptor, ConfluentSettings,
 from pyflink.table.expressions import col, lit
 import uuid
 from functools import reduce
-import boto3
-from botocore.exceptions import ClientError
-import json
 import logging
+import os
+
+from aws_clients_python_lib.aws_lambda import aws_lambda_function_return_json_object
+from aws_clients_python_lib.secrets_manager import get_secrets
+from cc_clients_python_lib.http_status import HttpStatus
 
 
 __copyright__  = "Copyright (c) 2024-2025 Jeffrey Jonathan Jennings"
@@ -58,41 +60,33 @@ def lambda_handler(event, context):
     required_event_fields = ["catalog_name", "database_name", "ccaf_secrets_path"]
     for field in required_event_fields:
         if field not in event:
-            logger.error(f"Missing required field: {field}")
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': f'Missing required field: {field}'})
-            }
+            return aws_lambda_function_return_json_object(logger, HttpStatus.BAD_REQUEST, f"Missing required field: {field}")
+        elif field == "":
+            return aws_lambda_function_return_json_object(logger, HttpStatus.BAD_REQUEST, f"Field is blank: {field}")
         
     # Get the catalog name, database name, and secrets path from the event.
     catalog_name = event.get("catalog_name", "").lower()
     database_name = event.get("database_name", "").lower()
-    secrets_path = event.get("ccaf_secrets_path", "")
+    ccaf_secrets_path = event.get("ccaf_secrets_path", "")
 
-    try:
-        get_secret_value_response = boto3.client('secretsmanager').get_secret_value(SecretId=secrets_path)
-        settings = json.loads(get_secret_value_response['SecretString'])
-
-        # Create the TableEnvironment with the Confluent Cloud for Apache Flink settings.
-        tbl_env = TableEnvironment.create(
-            ConfluentSettings
-                .new_builder()
-                .set_cloud(settings[FLINK_CLOUD])
-                .set_region(settings[FLINK_REGION])
-                .set_flink_api_key(settings[FLINK_API_KEY])
-                .set_flink_api_secret(settings[FLINK_API_SECRET])
-                .set_organization_id(settings[ORGANIZATION_ID])
-                .set_environment_id(settings[ENVIRONMENT_ID])
-                .set_compute_pool_id(settings[FLINK_COMPUTE_POOL_ID])
-                .set_principal_id(settings[FLINK_PRINCIPAL_ID])
-                .build()
-        )
-    except ClientError as e:
-        logger.error("Failed to get secrets from the AWS Secrets Manager because of %s.", e)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+    # Create the TableEnvironment with the Confluent Cloud for Apache Flink settings.
+    settings, error_message = get_secrets(os.environ['AWS_REGION'], ccaf_secrets_path)
+    if settings == {}:
+        return aws_lambda_function_return_json_object(logger, HttpStatus.INTERNAL_SERVER_ERROR, error_message)
+    
+    tbl_env = TableEnvironment.create(
+        ConfluentSettings
+            .new_builder()
+            .set_cloud(settings[FLINK_CLOUD])
+            .set_region(settings[FLINK_REGION])
+            .set_flink_api_key(settings[FLINK_API_KEY])
+            .set_flink_api_secret(settings[FLINK_API_SECRET])
+            .set_organization_id(settings[ORGANIZATION_ID])
+            .set_environment_id(settings[ENVIRONMENT_ID])
+            .set_compute_pool_id(settings[FLINK_COMPUTE_POOL_ID])
+            .set_principal_id(settings[FLINK_PRINCIPAL_ID])
+            .build()
+    )
 
     # The catalog name and database name are used to set the current catalog and database.
     tbl_env.use_catalog(catalog_name)
@@ -132,11 +126,7 @@ def lambda_handler(event, context):
         else:
             logger.info(f"Sink table '{flight_avro_table_path.get_full_name()}' already exists.")
     except Exception as e:
-        logger.error(f"A critical error occurred during the processing of the table because {e}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return aws_lambda_function_return_json_object(logger, HttpStatus.INTERNAL_SERVER_ERROR, f"A critical error occurred during the processing {flight_avro_table_path.get_full_name()} sink table because {e}")
 
     # The first table is the SkyOne table that is read in.
     airline = tbl_env.from_path(f"{catalog_name}.{database_name}.skyone_avro")
@@ -183,15 +173,6 @@ def lambda_handler(event, context):
 
         # Get the processed statement name.
         processed_statement_name = ConfluentTools.get_statement_name(table_result)
-        success_message = f"Data processed and inserted successfully as: {processed_statement_name}"
-        logger.info(success_message)
-        return {
-            'statusCode': 200,
-            'body': json.dumps({'message': success_message})
-        }
+        return aws_lambda_function_return_json_object(logger, HttpStatus.OK, f"Completed Flink SQL creation and deployment to CCAF: {processed_statement_name}")
     except Exception as e:
-        logger.error(f"An error occurred during data insertion: {e}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return aws_lambda_function_return_json_object(logger, HttpStatus.INTERNAL_SERVER_ERROR, f"An error occurred during data insertion: {e}")
