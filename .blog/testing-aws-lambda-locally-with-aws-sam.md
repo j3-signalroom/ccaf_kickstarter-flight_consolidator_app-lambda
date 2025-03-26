@@ -59,3 +59,7 @@ The `Metadata` section provides additional information to guide the SAM deployme
    - Sets the tag for the Docker image as `Latest`. This is a common tag for identifying the most recent build of the image.
 
 ---
+
+## Resources
+
+[SelfManagedKafka](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-selfmanagedkafka.html)
