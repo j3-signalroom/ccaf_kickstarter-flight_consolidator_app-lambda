@@ -7,6 +7,7 @@ The format is base on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), 
 ## [0.08.00.000] - TBD
 ### Changed
 - Issue [#128](https://github.com/j3-signalroom/ccaf_kickstarter-flight_consolidator_app-lambda/issues/128).
+- Issue [#130](https://github.com/j3-signalroom/ccaf_kickstarter-flight_consolidator_app-lambda/issues/130).
 
 ## [0.07.01.000] - 2025-03-13
 ### Changed
